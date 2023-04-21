@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Gallery, GalleryItem, GalleryItemImage } from './ImageGallery.styled';
 
 export const ImageGallery = ({ hits, showModal }) => {
@@ -13,4 +14,9 @@ export const ImageGallery = ({ hits, showModal }) => {
         })}
     </Gallery>
   );
+};
+
+ImageGallery.propTypes = {
+  hits: PropTypes.array,
+  showModal: PropTypes.func.isRequired,
 };

@@ -106,7 +106,7 @@ export class App extends Component {
           return;
         }
         this.setState({
-          hits: filteredData,
+          hits: updatedHits,
           isLoading: false,
           showButton: true,
           buttonLoading: false,

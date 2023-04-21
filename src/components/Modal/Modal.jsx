@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 
 import { ModalOverlay, ModalContentWindow } from './Modal.styled';
@@ -16,4 +17,9 @@ export const Modal = ({ closeModal, largeImage }) => {
     </ModalOverlay>,
     modalRoot
   );
+};
+
+Modal.propTypes = {
+  closeModal: PropTypes.func.isRequired,
+  largeImage: PropTypes.string.isRequired,
 };
