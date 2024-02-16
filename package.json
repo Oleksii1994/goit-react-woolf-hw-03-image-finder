@@ -2,7 +2,7 @@
   "name": "react-homework-template",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://Oleksii1994.github.io/goit-react-hw-03-image-finder/",
+  "homepage": "https://Oleksii1994.github.io/goit-react-woolf-hw-03-image-finder/",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
