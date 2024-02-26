@@ -5,12 +5,7 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { LoadMoreBtn } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
-import axios from 'axios';
-
-const MY_KEY = '34183699-29109d6fbf2dd60241f6d6e15';
-const BASE_URL = 'https://pixabay.com/api/';
-const OPTIONS_FOR_RESPONSE =
-  'image_type=photo&orientation=horizontal&safesearch=true';
+import { getImages } from 'api/api';
 
 export class App extends Component {
   state = {
@@ -26,19 +21,30 @@ export class App extends Component {
 
   async componentDidUpdate(prevProps, prevState) {
     const prevSearchQuerry = prevState.searchQuerry;
-    const nextSearchQuerry = this.state.searchQuerry;
+    const { searchQuerry } = this.state;
     const prevPage = prevState.page;
-    const nextPage = this.state.page;
+    const { page } = this.state;
 
-    if (prevSearchQuerry !== nextSearchQuerry) {
+    if (prevSearchQuerry !== searchQuerry) {
       try {
-        this.setState({ hits: null, page: 1, isLoading: true });
-        const res = await axios.get(
-          `${BASE_URL}?q=${nextSearchQuerry}&page=1&key=${MY_KEY}&${OPTIONS_FOR_RESPONSE}&per_page=12`
-        );
+        this.setState({
+          hits: null,
+          page: 1,
+          isLoading: true,
+          showButton: false,
+        });
 
-        const responseHits = res.data.hits;
-        const filteredData = responseHits.map(
+        const { hits, totalHits } = await getImages(searchQuerry);
+
+        if (hits.length === 0) {
+          this.setState({
+            isLoading: false,
+          });
+          alert('Enter another word to search');
+          return;
+        }
+
+        const filteredData = hits.map(
           ({ id, webformatURL, largeImageURL, tags }) => ({
             id,
             webformatURL,
@@ -46,31 +52,11 @@ export class App extends Component {
             tags,
           })
         );
-        if (filteredData.length === 0) {
-          this.setState({
-            isLoading: false,
-            hits: filteredData,
-            showButton: false,
-            buttonLoading: false,
-          });
-          alert('Enter another word to search');
-          return;
-        }
-
-        if (filteredData.length < 12) {
-          this.setState({
-            hits: filteredData,
-            isLoading: false,
-            showButton: false,
-            buttonLoading: false,
-          });
-          return;
-        }
 
         this.setState({
           hits: filteredData,
           isLoading: false,
-          showButton: true,
+          showButton: page < Math.ceil(totalHits / 12),
           buttonLoading: false,
         });
       } catch (e) {
@@ -78,17 +64,15 @@ export class App extends Component {
       }
     }
 
-    if (prevPage !== nextPage) {
+    if (prevPage !== page) {
       try {
-        if (nextPage === 1) {
+        if (page === 1) {
           return;
         }
         this.setState({ buttonLoading: true });
-        const res = await axios.get(
-          `${BASE_URL}?q=${nextSearchQuerry}&page=${nextPage}&key=${MY_KEY}&${OPTIONS_FOR_RESPONSE}&per_page=12`
-        );
-        const responceHits = res.data.hits;
-        const filteredData = responceHits.map(
+        const { hits, totalHits } = await getImages(searchQuerry, page);
+
+        const filteredData = hits.map(
           ({ id, largeImageURL, webformatURL }) => ({
             id,
             largeImageURL,
@@ -97,18 +81,10 @@ export class App extends Component {
         );
         const updatedHits = [...this.state.hits, ...filteredData];
 
-        if (filteredData.length < 12) {
-          this.setState({
-            hits: updatedHits,
-            showButton: false,
-            isLoading: false,
-          });
-          return;
-        }
         this.setState({
           hits: updatedHits,
           isLoading: false,
-          showButton: true,
+          showButton: page < Math.ceil(totalHits / 12),
           buttonLoading: false,
         });
       } catch (error) {
