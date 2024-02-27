@@ -10,7 +10,7 @@ import { getImages } from 'api/api';
 export class App extends Component {
   state = {
     searchQuerry: '',
-    hits: null,
+    hits: [],
     page: 1,
     isLoading: false,
     buttonLoading: false,
@@ -25,16 +25,13 @@ export class App extends Component {
     const prevPage = prevState.page;
     const { page } = this.state;
 
-    if (prevSearchQuerry !== searchQuerry) {
+    if (prevSearchQuerry !== searchQuerry || prevPage !== page) {
       try {
         this.setState({
-          hits: null,
-          page: 1,
           isLoading: true,
-          showButton: false,
         });
 
-        const { hits, totalHits } = await getImages(searchQuerry);
+        const { hits, totalHits } = await getImages(searchQuerry, page);
 
         if (hits.length === 0) {
           this.setState({
@@ -53,53 +50,38 @@ export class App extends Component {
           })
         );
 
-        this.setState({
-          hits: filteredData,
-          isLoading: false,
+        this.setState(prevState => ({
+          hits: [...prevState.hits, ...filteredData],
           showButton: page < Math.ceil(totalHits / 12),
           buttonLoading: false,
-        });
+        }));
       } catch (e) {
         console.log(e);
-      }
-    }
-
-    if (prevPage !== page) {
-      try {
-        if (page === 1) {
-          return;
-        }
-        this.setState({ buttonLoading: true });
-        const { hits, totalHits } = await getImages(searchQuerry, page);
-
-        const filteredData = hits.map(
-          ({ id, largeImageURL, webformatURL }) => ({
-            id,
-            largeImageURL,
-            webformatURL,
-          })
-        );
-        const updatedHits = [...this.state.hits, ...filteredData];
-
+      } finally {
         this.setState({
-          hits: updatedHits,
           isLoading: false,
-          showButton: page < Math.ceil(totalHits / 12),
-          buttonLoading: false,
         });
-      } catch (error) {
-        console.log(error);
       }
     }
   }
 
   onLoadMore = () => {
-    const nextPage = this.state.page + 1;
-    this.setState({ page: nextPage });
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
   };
 
   handleSubmit(searchWord) {
-    this.setState({ searchQuerry: searchWord.toLowerCase().trim() });
+    this.setState({
+      searchQuerry: searchWord.toLowerCase().trim(),
+      hits: [],
+      page: 1,
+      isLoading: false,
+      buttonLoading: false,
+      showButton: false,
+      showModal: false,
+      largeImage: '',
+    });
   }
 
   showModal = image => {
